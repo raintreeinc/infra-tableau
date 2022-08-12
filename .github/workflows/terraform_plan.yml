@@ -46,8 +46,8 @@ jobs:
           -var "tag_support_group=${{ secrets.TAG_SUPPORT_GROUP }}" \
           -var "tableau_username=${{ secrets.TABLEAUSERVERADMINUSER }}" \
           -var "tableau_password=${{ secrets.TABLEAUSERVERADMINPASSWORD }}" \
-          -var "tsm_username=${{ secrets.TSMUSERNAME }}"
-          -var "tsm_password=${{ secrets.TSMPASSWORD }}"
+          -var "tsm_username=${{ secrets.TSMUSERNAME }}" \
+          -var "tsm_password=${{ secrets.TSMPASSWORD }}" \
           -out src/tfplan
 
     - name: 'Upload Artifact'
