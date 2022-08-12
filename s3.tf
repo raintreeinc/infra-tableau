@@ -50,6 +50,15 @@ resource "aws_s3_bucket_versioning" "this" {
   }
 }
 
+resource "aws_s3_object" "infra-tableau" {
+  count                   = var.enabled ? 1 : 0
+  bucket                  = aws_s3_bucket.this[count.index].bucket
+  acl                     = "private"
+  key                     = "logs/infra-tableau/"
+  source                  = "/dev/null"
+  kms_key_id              = data.aws_kms_key.this.arn
+}
+
 resource "aws_s3_bucket_logging" "this" {
   count                   = var.enabled ? 1 : 0
   bucket                  = aws_s3_bucket.this[count.index].bucket
