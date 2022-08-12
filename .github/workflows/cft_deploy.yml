@@ -6,6 +6,7 @@ jobs:
   tableau:
     name: Deploy stack to AWS
     runs-on: ubuntu-latest
+    environment: DEV
     
     steps:
     - name: Checkout
