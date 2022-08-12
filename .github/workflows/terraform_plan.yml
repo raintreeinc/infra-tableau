@@ -1,0 +1,49 @@
+on:
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  terraform:
+    name: Terraform
+    environment:
+      name: DEV
+    runs-on: [self-hosted, linux, x64, dev]
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v2
+
+    - name: 'Setup Terraform'
+      uses: hashicorp/setup-terraform@v1
+
+    - name: 'Create Terraform Plan Artifact for Apply'
+      run: |
+        terraform init -backend-config="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+          -backend-config="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          -backend-config="bucket=${{ secrets.BUCKET }}" \
+          -backend-config="key=${{ secrets.KEY }}" \
+          -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
+          -backend-config="region=${{ secrets.AWS_REGION }}"
+        terraform plan -var "aws_region=${{ secrets.AWS_REGION }}" \
+          -var "aws_region_code=${{ secrets.AWS_REGION_CODE }}" \
+          -var "aws_replica_region=${{ secrets.AWS_REPLICA_REGION }}" \
+          -var "aws_replica_region_code=${{ secrets.AWS_REPLICA_REGION_CODE }}" \
+          -var "aws_team=${{ secrets.AWS_TEAM }}" \
+          -var "tag_automation=${{ secrets.TAG_AUTOMATION }}" \
+          -var "tag_env=${{ secrets.TAG_ENV }}" \
+          -var "tag_framework=${{ secrets.TAG_FRAMEWORK }}" \
+          -var "tag_owner=${{ secrets.TAG_OWNER }}" \
+          -var "tag_prefix=${{ secrets.TAG_PREFIX }}" \
+          -var "tag_support_group=${{ secrets.TAG_SUPPORT_GROUP }}" \
+          -out src/tfplan
+
+    - name: 'Upload Artifact'
+      uses: actions/upload-artifact@v3
+      with:
+        name: TerraformPlan
+        path: src/tfplan
+        retention-days: 1
