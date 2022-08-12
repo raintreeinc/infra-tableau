@@ -1,0 +1,63 @@
+name: Deploy Tableau CFT
+on:
+  workflow_dispatch:
+
+jobs:
+  tableau:
+    name: Deploy stack to AWS
+    runs-on: ubuntu-latest
+    outputs:
+      env-name: ${{ steps.env-name.outputs.environment }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      id: creds
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Deploy Tableau CFT
+      id: tableau
+      uses: aws-actions/aws-cloudformation-github-deploy@master
+      with:
+        name: ${{ secrets.AWS_REGION_CODE }}-${{ secrets.TAG_ENV }}-${{ secrets.AWS_TEAM }}-TABLEAU
+        template: https://aws-quickstart.s3.amazonaws.com/quickstart-tableau-server/templates/tableau-server-existing-vpc.template.yaml
+        no-fail-on-empty-changeset: "1"
+        parameter-overrides: >-
+          VPCID=${{ secrets.VPCID }}
+          PrivateSubnet1ID=${{ secrets.PRIVATESUBNET1ID }}
+          PublicSubnet1ID=${{ secrets.PUBLICSUBNET1ID }}
+          PublicSubnet2ID=${{ secrets.PUBLICSUBNET2ID }}
+          Route53HostedZone=${{ secrets.ROUTE53HOSTEDZONE }}
+          Route53DomainName=${{ secrets.ROUTE53DOMAINNAME }}
+          TableauServerSubDomainName=tableau,
+          InstanceType=${{ secrets.INSTANCETYPE }}
+          OS=Linux,
+          KeyPairName=KP-${{ secrets.TAG_ENV }}
+          SourceCIDR=${{ secrets.SOURCECIDR }}
+          TableauS3BucketName=${{ secrets.TABLEAUS3BUCKETNAME }}
+          TableauServerAdminUser=${{ secrets.TABLEAUSERVERADMINUSER }}
+          TableauServerAdminPassword=${{ secrets.TABLEAUSERVERADMINPASSWORD }}
+          TsmUsername=${{ secrets.TSMUSERNAME }}
+          TsmPassword=${{ secrets.TSMPASSWORD }}
+          LicenseKey=${{ secrets.CORE_KEY }},
+          AcceptEULA=yes,
+          RegFirstName=${{ secrets.REGFIRSTNAME }}
+          RegLastName=${{ secrets.REGLASTNAME }}
+          RegEmail=${{ secrets.REGEMAIL }}
+          RegCompany=${{ secrets.REGCOMPANY }}
+          RegTitle=${{ secrets.REGTITLE }}
+          RegDepartment=${{ secrets.REGDEPARTMENT }}
+          RegIndustry=${{ secrets.REGINDUSTRY }}
+          RegPhone=${{ secrets.REGPHONE }}
+          RegCity=${{ secrets.REGCITY }}
+          RegState=${{ secrets.REGSTATE }}
+          RegZip=${{ secrets.REGZIP }}
+          RegCountry=${{ secrets.REGCOUNTRY }}
+          RegCompanyEmployees=${{ secrets.REGCOMPANYEMPLOYEES }}
+          RegOptIn=false
