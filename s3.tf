@@ -53,6 +53,6 @@ resource "aws_s3_bucket_versioning" "this" {
 resource "aws_s3_bucket_logging" "this" {
   count                   = var.enabled ? 1 : 0
   bucket                  = aws_s3_bucket.this[count.index].bucket
-  target_bucket           = "${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-logs"
+  target_bucket           = "${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.tag_owner)}-logs"
   target_prefix           = "logs/infra-tableau/"
 }
