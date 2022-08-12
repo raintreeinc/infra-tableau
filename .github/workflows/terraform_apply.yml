@@ -1,0 +1,39 @@
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  terraform:
+    name: Terraform
+    environment:
+      name: DEV
+    runs-on: [self-hosted, linux, x64, dev]
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v2
+
+    - name: 'Setup Terraform'
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Download artifact
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: terraform_plan.yml
+        name: TerraformPlan
+
+    - name: 'Apply Terraform Plan'
+      run: |
+        export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+        export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+        terraform init -backend-config="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+          -backend-config="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          -backend-config="bucket=${{ secrets.BUCKET }}" \
+          -backend-config="key=${{ secrets.KEY }}" \
+          -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
+          -backend-config="region=${{ secrets.AWS_REGION }}"
+        terraform apply tfplan
