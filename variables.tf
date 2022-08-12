@@ -1,3 +1,8 @@
+variable "enabled" {
+  default       = true
+  description   = "If set to true, infra will be created and if false, destroyed or not created at all"
+}
+
 variable "aws_region" {
   type          = string
   description   = "Primary AWS region for deployment"
