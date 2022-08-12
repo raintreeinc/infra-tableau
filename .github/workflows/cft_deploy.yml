@@ -21,7 +21,7 @@ jobs:
 
     - name: Deploy Tableau CFT
       id: tableau
-      uses: aws-actions/aws-cloudformation-github-deploy@master
+      uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3
       with:
         name: ${{ secrets.AWS_REGION_CODE }}-${{ secrets.TAG_ENV }}-${{ secrets.AWS_TEAM }}-TABLEAU
         template: https://aws-quickstart.s3.amazonaws.com/quickstart-tableau-server/templates/tableau-server-existing-vpc.template.yaml
