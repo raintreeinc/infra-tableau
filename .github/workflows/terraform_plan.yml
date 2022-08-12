@@ -10,7 +10,7 @@ jobs:
       name: DEV
     env:
       create: "True"
-    runs-on: [self-hosted, linux, x64, dev]
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
