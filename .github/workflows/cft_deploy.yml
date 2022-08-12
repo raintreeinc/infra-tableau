@@ -6,9 +6,7 @@ jobs:
   tableau:
     name: Deploy stack to AWS
     runs-on: ubuntu-latest
-    outputs:
-      env-name: ${{ steps.env-name.outputs.environment }}
-
+    
     steps:
     - name: Checkout
       uses: actions/checkout@v2
