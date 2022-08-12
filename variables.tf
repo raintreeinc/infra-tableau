@@ -57,3 +57,23 @@ variable "tag_support_group" {
   type          = string
   description   = "Primary Support Group (generally IT)"
 }
+
+variable "tableau_username" {
+  type          = string
+  description   = "Tableau Server administrator username"
+}
+
+variable "tableau_password" {
+  type          = string
+  description   = "Tableau Server administrator password"
+}
+
+variable "tsm_username" {
+  type          = string
+  description   = "Tableau Services Manager (TSM) administrator username"
+}
+
+variable "tsm_password" {
+  type          = string
+  description   = "Tableau Services Manager (TSM) administrator password"
+}
