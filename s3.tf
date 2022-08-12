@@ -1,8 +1,8 @@
 resource "aws_s3_bucket" "this" {
   count                   = var.enabled ? 1 : 0
-  bucket                  = "${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
+  bucket                  = "${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.tag_owner)}-tableau"
   tags = {
-    Name                  = "${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
+    Name                  = "${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.tag_owner)}-tableau"
     Environment           = var.tag_env
     Owner                 = var.tag_owner
     SupportGroup          = var.tag_support_group

@@ -9,7 +9,7 @@ jobs:
     environment:
       name: DEV
     env:
-      create: "True"
+      create: true
     runs-on: ubuntu-latest
     defaults:
       run:
