@@ -9,7 +9,7 @@ jobs:
     environment:
       name: DEV
     env:
-      create: True
+      create: "True"
     runs-on: [self-hosted, linux, x64, dev]
     defaults:
       run:
@@ -23,7 +23,6 @@ jobs:
       uses: hashicorp/setup-terraform@v1
 
     - name: 'Create Terraform Plan Artifact for Apply'
-      if: ${{ env.create == True }}
       run: |
         terraform init -backend-config="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
           -backend-config="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
