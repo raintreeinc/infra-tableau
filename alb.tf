@@ -47,7 +47,7 @@ resource "aws_lb_listener" "tableau-https" {
   certificate_arn             = data.aws_acm_certificate.this.arn
   default_action {
     type                      = "forward"
-    target_group_arn          = aws_lb_target_group.tableau.arn
+    target_group_arn          = aws_lb_target_group.tableau[count.index].arn
   }
 }
 
@@ -76,6 +76,6 @@ resource "aws_lb_listener" "tsm-https" {
   certificate_arn             = data.aws_acm_certificate.this.arn
   default_action {
     type                      = "forward"
-    target_group_arn          = aws_lb_target_group.tsm.arn
+    target_group_arn          = aws_lb_target_group.tsm[count.index].arn
   }
 }
