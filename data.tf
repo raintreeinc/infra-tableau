@@ -94,7 +94,7 @@ data "aws_vpc" "this" {
 data "aws_subnets" "app-subnets-public" {
   filter {
     name   = "vpc-id"
-    values = [aws_vpc.app.id]
+    values = [data.aws_vpc.app.id]
   }
   tags = {
     Tier = "Public"
@@ -104,7 +104,7 @@ data "aws_subnets" "app-subnets-public" {
 data "aws_subnets" "app-subnets-private" {
   filter {
     name   = "vpc-id"
-    values = [aws_vpc.app.id]
+    values = [data.aws_vpc.app.id]
   }
   tags = {
     Tier = "Private"

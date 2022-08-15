@@ -4,7 +4,7 @@ resource "aws_lb" "tableau" {
   name                        = "ALB-${upper(var.aws_region_code)}-${upper(var.tag_env)}-${upper(var.aws_team)}-TABLEAU"
   internal                    = false
   load_balancer_type          = "application"
-  subnets                     = data.aws_subnet_ids.app-subnets-public.ids
+  subnets                     = data.aws_subnets.app-subnets-public.ids
   enable_deletion_protection  = false
   drop_invalid_header_fields  = true
   security_groups             = [data.aws_security_group.inbound-linux-app-management.id, data.aws_security_group.inbound-web-public.id, data.aws_security_group.outbound-linux-app.id]
@@ -16,7 +16,7 @@ resource "aws_lb" "tsm" {
   name                        = "ALB-${upper(var.aws_region_code)}-${upper(var.tag_env)}-${upper(var.aws_team)}-TSM"
   internal                    = false
   load_balancer_type          = "application"
-  subnets                     = data.aws_subnet_ids.app-subnets-public.ids
+  subnets                     = data.aws_subnets.app-subnets-public.ids
   enable_deletion_protection  = false
   drop_invalid_header_fields  = true
   security_groups             = [data.aws_security_group.inbound-linux-devops.id, data.aws_security_group.inbound-linux-app-management.id, data.aws_security_group.inbound-web-public.id, data.aws_security_group.outbound-linux-app.id]
