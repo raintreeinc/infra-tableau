@@ -30,3 +30,8 @@ resource "aws_iam_role" "ec2-instance" {
     Name = "rt-ec2-tableau"
   }
 }
+
+resource "aws_iam_instance_profile" "ec2-instance" {
+  name  = "rt-ec2-tableau"
+  role  = aws_iam_role.ec2-instance.name
+}
