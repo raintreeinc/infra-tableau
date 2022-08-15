@@ -30,3 +30,9 @@ resource "aws_iam_role" "ec2-instance" {
     Name = "rt-ec2-tableau"
   }
 }
+
+resource "aws_iam_instance_profile" "ec2-instance" {
+  count               = var.enabled ? 1 : 0
+  name                = "rt-ec2-tableau"
+  role                = aws_iam_role.ec2-instance[count.index].name
+}

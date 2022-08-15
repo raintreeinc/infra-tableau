@@ -1,6 +1,6 @@
 resource "aws_autoscaling_group" "this" {
   count                 = var.enabled ? 1 : 0
-  name                  = "ASG-${upper(var.tag_prefix)}-${upper(var.tag_env)}-${upper(var.aws_team)}-TABLEAU"
+  name                  = "ASG-${upper(var.aws_region_code)}-${upper(var.tag_env)}-${upper(var.aws_team)}-TABLEAU"
   vpc_zone_identifier   = data.aws_subnets.app-subnets-public.ids
   desired_capacity      = 1
   max_size              = 1

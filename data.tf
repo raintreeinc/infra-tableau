@@ -1,5 +1,5 @@
 data "aws_kms_key" "this" {
-  key_id = "alias/${lower(var.aws_region_code)}-kms-${lower(var.tag_env)}-${lower(var.tag_owner)}"
+  key_id = "alias/${lower(var.aws_region_code)}-kms-${lower(var.tag_env)}-devops"
 }
 
 data "aws_iam_policy_document" "ec2-instance" {
