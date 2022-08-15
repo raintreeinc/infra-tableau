@@ -40,7 +40,7 @@ resource "aws_launch_template" "this" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      ServerType = "git"
+      ServerType = "Tableau"
       OS = "Linux"
     }
   }

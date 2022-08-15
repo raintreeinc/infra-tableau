@@ -122,4 +122,8 @@ data "aws_ami" "redhat" {
     name   = "name"
     values = ["RHEL-8.6.0_HVM-*"]
   }
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
 }

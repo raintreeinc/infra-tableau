@@ -31,7 +31,7 @@ resource "aws_lb_listener" "tableau-http" {
     type                      = "redirect"
     redirect {
       host                    = "#{host}"
-      path                    = "#{path}"
+      path                    = "/#{path}"
       query                   = "#{query}"
       port                    = "443"
       protocol                = "HTTPS"
@@ -62,7 +62,7 @@ resource "aws_lb_listener" "tsm-http" {
     type                      = "redirect"
     redirect {
       host                    = "#{host}"
-      path                    = "#{path}"
+      path                    = "/#{path}"
       query                   = "#{query}"
       port                    = "443"
       protocol                = "HTTPS"
