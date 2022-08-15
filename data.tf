@@ -13,6 +13,7 @@ data "aws_iam_policy_document" "ec2-instance" {
 }
 
 data "aws_iam_policy_document" "ec2-access" {
+  #tfsec:ignore:aws-iam-no-policy-wildcards
   statement {
     actions = [
       "ec2:CreateTags",
@@ -31,6 +32,7 @@ data "aws_iam_policy_document" "ec2-access" {
 }
 
 data "aws_iam_policy_document" "secrets-lookup" {
+  #tfsec:ignore:aws-iam-no-policy-wildcards
   statement {
     actions = [
       "secretsmanager:GetSecretValue"
@@ -40,6 +42,7 @@ data "aws_iam_policy_document" "secrets-lookup" {
 }
 
 data "aws_iam_policy_document" "kms-decrypt" {
+  #tfsec:ignore:aws-iam-no-policy-wildcards
   statement {
     actions = [
       "kms:Decrypt"
@@ -49,6 +52,7 @@ data "aws_iam_policy_document" "kms-decrypt" {
 }
 
 data "aws_iam_policy_document" "alb-access" {
+  #tfsec:ignore:aws-iam-no-policy-wildcards
   statement {
     actions = [
       "elasticloadbalancing:DescribeTargetHealth",
