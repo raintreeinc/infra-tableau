@@ -1,4 +1,6 @@
 resource "aws_iam_role" "ec2-instance" {
+  count               = var.enabled ? 1 : 0
+  #tfsec:ignore:aws-iam-no-policy-wildcards
   name                = "rt-ec2-tableau"
   path                = "/system/"
   assume_role_policy  = data.aws_iam_policy_document.ec2-instance.json

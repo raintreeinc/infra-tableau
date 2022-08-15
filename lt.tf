@@ -1,4 +1,5 @@
 resource "aws_launch_template" "this" {
+  count                                 = var.enabled ? 1 : 0
   name                                  = "lt-${lower(var.aws_region_code)}-${lower(var.tag_env)}-tableau-linux"
   description                           = "Launch Template for a RHEL Tableau Server"
   update_default_version                = true
@@ -18,10 +19,11 @@ resource "aws_launch_template" "this" {
   image_id                              = data.aws_ami.redhat.image_id
   instance_initiated_shutdown_behavior  = "terminate"
   instance_type                         = "r6id.2xlarge"
-  key_name                              = "KP-${upper(local.account_data.tag_env)}"
+  key_name                              = "KP-${upper(var.tag_env)}"
   metadata_options {
     http_endpoint                       = "enabled"
-    http_tokens                         = "optional"
+    http_tokens                         = "required"
+    http_put_response_hop_limit         = 1
     instance_metadata_tags              = "enabled"
   }
   monitoring {

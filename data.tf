@@ -91,17 +91,23 @@ data "aws_vpc" "this" {
   }
 }
 
-data "aws_subnet_ids" "app-subnets-public" {
-  vpc_id                  = data.aws_vpc.this.id
+data "aws_subnets" "app-subnets-public" {
+  filter {
+    name   = "vpc-id"
+    values = [aws_vpc.app.id]
+  }
   tags = {
-    Tier        = "Public"
+    Tier = "Public"
   }
 }
 
-data "aws_subnet_ids" "app-subnets-private" {
-  vpc_id                  = data.aws_vpc.this.id
+data "aws_subnets" "app-subnets-private" {
+  filter {
+    name   = "vpc-id"
+    values = [aws_vpc.app.id]
+  }
   tags = {
-    Tier        = "Private"
+    Tier = "Private"
   }
 }
 

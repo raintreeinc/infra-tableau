@@ -1,6 +1,6 @@
 resource "aws_route53_record" "tableau" {
   count                     = var.enabled ? 1 : 0
-  zone_id                   = aws_route53_zone.this.zone_id
+  zone_id                   = data.aws_route53_zone.this.zone_id
   name                      = "tableau.${lower(var.tag_env)}.raintreeinc.com"
   type                      = "A"
   alias {
@@ -12,7 +12,7 @@ resource "aws_route53_record" "tableau" {
 
 resource "aws_route53_record" "tsm" {
   count                     = var.enabled ? 1 : 0
-  zone_id                   = aws_route53_zone.this.zone_id
+  zone_id                   = data.aws_route53_zone.this.zone_id
   name                      = "tableau-tsm.${lower(var.tag_env)}.raintreeinc.com"
   type                      = "A"
   alias {
