@@ -30,7 +30,9 @@ resource "aws_lb_listener" "tableau-http" {
   default_action {
     type                      = "redirect"
     redirect {
-      host                    = "https://#{host}:443/#{path}?#{query}"
+      host                    = "#{host}"
+      path                    = "#{path}"
+      query                   = "#{query}"
       port                    = "443"
       protocol                = "HTTPS"
       status_code             = "HTTP_301"
@@ -59,7 +61,9 @@ resource "aws_lb_listener" "tsm-http" {
   default_action {
     type                      = "redirect"
     redirect {
-      host                    = "https://#{host}:443/#{path}?#{query}"
+      host                    = "#{host}"
+      path                    = "#{path}"
+      query                   = "#{query}"
       port                    = "443"
       protocol                = "HTTPS"
       status_code             = "HTTP_301"
