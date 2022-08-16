@@ -93,6 +93,12 @@ data "aws_vpc" "this" {
   }
 }
 
+data "aws_vpc" "db" {
+  tags = {
+    Purpose     = "Data"
+  }
+}
+
 data "aws_subnets" "app-subnets-public" {
   filter {
     name   = "vpc-id"
@@ -107,6 +113,16 @@ data "aws_subnets" "app-subnets-private" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.this.id]
+  }
+  tags = {
+    Tier = "Private"
+  }
+}
+
+data "aws_subnets" "data-subnets-private" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.db.id]
   }
   tags = {
     Tier = "Private"
