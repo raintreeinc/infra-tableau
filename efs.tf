@@ -3,6 +3,9 @@ resource "aws_efs_file_system" "this" {
   creation_token                        = "efs-${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
   encrypted                             = true
   kms_key_id                            = aws_kms_key.this.arn
+  tags = {
+    Name                                = "efs-${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
+  }
 }
 
 resource "aws_efs_access_point" "this" {
