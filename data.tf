@@ -1,3 +1,5 @@
+data "aws_caller_identity" "this" {}
+
 data "aws_iam_policy_document" "ec2-instance" {
   statement {
     actions = ["sts:AssumeRole"]
