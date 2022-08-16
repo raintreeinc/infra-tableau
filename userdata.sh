@@ -4,7 +4,7 @@
 sed -i s/^SELINUX=.*$/SELINUX=disabled/ /etc/selinux/config
 
 # Install the AWS CLI and prerequisite packages for later
-dnf install -y unzip sssd realmd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation openldap-clients policycoreutils-python-utils jq
+dnf install -y unzip sssd realmd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation openldap-clients policycoreutils-python-utils jq git rpm-build make wget
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
@@ -59,6 +59,12 @@ hostnamectl set-hostname $strhostname.$domain --static
 instanceID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=Name,Value=$strhostname
 
+# Build and install the EFS RPM
+git clone https://github.com/aws/efs-utils
+cd ~/efs-utils
+make rpm
+dnf -y install ~/efs-utils/build/amazon-efs-utils*rpm
+
 # Run dnf updates
 dnf update -y
 dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
@@ -83,8 +89,15 @@ username=`echo $user | cut -d '@' -f1`
 domain_upper=`echo $user | cut -d '@' -f2 | tr '[:lower:]' '[:upper:]'`
 kuser=`echo $username@$domain_upper`
 echo $pass | kinit $kuser
-echo $pass | realm join $domain_upper -U $kuser --computer-name $strhostname --client-software=sssd
+echo $pass | realm join $domain_upper -U $kuser --client-software=sssd
 systemctl enable sssd
+
+# Download and install tableau
+mkdir ~/downloads
+wget https://downloads.tableau.com/esdalt/2022.1.4/tableau-server-2022-1-4.x86_64.rpm -P ~/downloads/
+dnf -y install ~/downloads/tableau-server-2022-1-4.x86_64.rpm
+mkdir -p /app/tableau_server
+rpm -i --prefix /app/tableau_server ~/downloads/tableau-server-2022-1-4.x86_64.rpm
 
 # Set ready tag on instance and then reboot
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True

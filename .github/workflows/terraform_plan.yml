@@ -86,4 +86,4 @@ jobs:
       with:
         name: JSON
         path: src/config.json
-        retention-days: 1        
+        retention-days: 1
