@@ -20,7 +20,7 @@ jobs:
     - name: 'Setup Terraform'
       uses: hashicorp/setup-terraform@v1
 
-    - name: Download artifact
+    - name: Download Terraform plan
       uses: dawidd6/action-download-artifact@v2
       with:
         workflow: terraform_plan.yml
@@ -37,3 +37,22 @@ jobs:
           -backend-config="dynamodb_table=${{ secrets.DYNAMODB_TABLE }}" \
           -backend-config="region=${{ secrets.AWS_REGION }}"
         terraform apply tfplan
+
+    - name: Download Tableau config
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: terraform_plan.yml
+        name: JSON
+
+    - name: Configure AWS credentials and upload to S3
+      id: creds
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+      run: |
+        region=`echo ${{ secrets.AWS_REGION_CODE }} | tr '[:upper:]' '[:lower:]'`
+        env=`echo ${{ secrets.TAG_ENV }} | tr '[:upper:]' '[:lower:]'`
+        team=`echo ${{ secrets.AWS_TEAM }} | tr '[:upper:]' '[:lower:]'`
+        aws s3 cp config.json s3://$region-$env-$team-tableau/

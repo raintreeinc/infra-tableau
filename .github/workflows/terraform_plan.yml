@@ -50,9 +50,34 @@ jobs:
           -var "tsm_password=${{ secrets.TSMPASSWORD }}" \
           -out src/tfplan
 
-    - name: 'Upload Artifact'
+    - name: 'Create json file to setup Tableau'
+      run: |
+        JSON_STRING=$( jq -n \
+                  --arg fn "${{ secrets.REGFIRSTNAME }}" \
+                  --arg ln ${{ secrets.REGLASTNAME }} \
+                  --arg em "${{ secrets.REGEMAIL }}" \
+                  --arg co "${{ secrets.REGCOMPANY }}" \
+                  --arg ti "${{ secrets.REGTITLE }}" \
+                  --arg de "${{ secrets.REGDEPARTMENT }}" \
+                  --arg in "${{ secrets.REGINDUSTRY }}" \
+                  --arg ph "${{ secrets.REGPHONE }}" \
+                  --arg ci "${{ secrets.REGCITY }}" \
+                  --arg st "${{ secrets.REGSTATE }}" \
+                  --arg zi "${{ secrets.REGZIP }}" \
+                  --arg cy "${{ secrets.REGCOUNTRY }}" \
+                  --arg em "${{ secrets.REGCOMPANYEMPLOYEES }}"
+                  '{zip: $zi, country: $cy, city: $ci, last_name: $ln, industry: $in, eula: yes, title: $ti, company_employees: $em, phone: $ph, company: $co, state: $st, opt_in: false, department: $de, first_name: $fn, email: $em}' ) > src/config.json
+
+    - name: 'Upload Terraform Artifact'
       uses: actions/upload-artifact@v3
       with:
         name: TerraformPlan
         path: src/tfplan
         retention-days: 1
+
+    - name: 'Upload JSON Config File'
+      uses: actions/upload-artifact@v3
+      with:
+        name: JSON
+        path: src/config.json
+        retention-days: 1        
