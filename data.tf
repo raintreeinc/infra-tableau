@@ -87,6 +87,10 @@ data "aws_security_group" "outbound-linux-app" {
   name          = "${lower(var.aws_region_code)}-sg-${lower(var.tag_env)}-app-public-outbound"
 }
 
+data "aws_security_group" "inbound-app-efs" {
+  name          = "${lower(var.aws_region_code)}-sg-${lower(var.tag_env)}-efs"
+}
+
 data "aws_vpc" "this" {
   tags = {
     Purpose     = "Application"
