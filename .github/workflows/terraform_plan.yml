@@ -52,21 +52,27 @@ jobs:
 
     - name: 'Create json file to setup Tableau'
       run: |
-        JSON_STRING=$( jq -n \
-                  --arg fn "${{ secrets.REGFIRSTNAME }}" \
-                  --arg ln ${{ secrets.REGLASTNAME }} \
-                  --arg em "${{ secrets.REGEMAIL }}" \
-                  --arg co "${{ secrets.REGCOMPANY }}" \
-                  --arg ti "${{ secrets.REGTITLE }}" \
-                  --arg de "${{ secrets.REGDEPARTMENT }}" \
-                  --arg in "${{ secrets.REGINDUSTRY }}" \
-                  --arg ph "${{ secrets.REGPHONE }}" \
-                  --arg ci "${{ secrets.REGCITY }}" \
-                  --arg st "${{ secrets.REGSTATE }}" \
-                  --arg zi "${{ secrets.REGZIP }}" \
-                  --arg cy "${{ secrets.REGCOUNTRY }}" \
-                  --arg em "${{ secrets.REGCOMPANYEMPLOYEES }}"
-                  '{zip: $zi, country: $cy, city: $ci, last_name: $ln, industry: $in, eula: yes, title: $ti, company_employees: $em, phone: $ph, company: $co, state: $st, opt_in: false, department: $de, first_name: $fn, email: $em}' ) > src/config.json
+        json_data=$(cat <<EOF
+        {
+          "zip": ${{ secrets.REGZIP }}",
+          "country": "${{ secrets.REGCOUNTRY }}",
+          "city": "${{ secrets.REGCITY }}",
+          "last_name": "${{ secrets.REGLASTNAME }}",
+          "industry": "${{ secrets.REGINDUSTRY }}",
+          "eula": "yes",
+          "title": "${{ secrets.REGTITLE }}",
+          "company_employees": "${{ secrets.REGCOMPANYEMPLOYEES }}",
+          "phone": "${{ secrets.REGPHONE }}",
+          "company": "${{ secrets.REGCOMPANY }}",
+          "state": "${{ secrets.REGSTATE }}",
+          "opt_in": "false",
+          "department": "${{ secrets.REGDEPARTMENT }}",
+          "first_name": ${{ secrets.REGFIRSTNAME }},
+          "email": "${{ secrets.REGEMAIL }}"
+        }
+        EOF
+        )
+        echo "$json_data" >> src/config.json
 
     - name: 'Upload Terraform Artifact'
       uses: actions/upload-artifact@v3
