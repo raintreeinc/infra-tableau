@@ -111,8 +111,8 @@ mount_info="$mount_ip\t$efs_data.$region.amazonaws.com"
 echo -e "$mount_info" >> /etc/hosts
 mount_target=`echo $mount_data`
 mkdir -p /data
-efs_fstabinfo="$efs_data:/\t/data\tefs\t_netdev,noresvport,tls,iam\t0\t0"
-echo -e "$efs_fstabinfo" >> /etc/fstab
+#efs_fstabinfo="$efs_data:/\t/data\tefs\t_netdev,noresvport,tls,iam\t0\t0"
+#echo -e "$efs_fstabinfo" >> /etc/fstab
 
 # Download and install tableau
 mkdir ~/downloads
