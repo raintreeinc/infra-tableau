@@ -36,7 +36,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   bucket                  = aws_s3_bucket.this[count.index].bucket
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id   = data.aws_kms_key.this.id
+      kms_master_key_id   = aws_kms_key.this.id
       sse_algorithm       = "aws:kms"
     }
   }
@@ -56,7 +56,7 @@ resource "aws_s3_object" "infra-tableau" {
   acl                     = "private"
   key                     = "logs/infra-tableau/"
   source                  = "/dev/null"
-  kms_key_id              = data.aws_kms_key.this.arn
+  kms_key_id              = aws_kms_key.this.arn
 }
 
 resource "aws_s3_bucket_logging" "this" {

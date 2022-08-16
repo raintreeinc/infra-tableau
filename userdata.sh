@@ -65,6 +65,9 @@ cd ~/efs-utils
 make rpm
 dnf -y install ~/efs-utils/build/amazon-efs-utils*rpm
 
+# Create data mount directory and mount efs share to it
+
+
 # Run dnf updates
 dnf update -y
 dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
