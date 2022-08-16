@@ -25,6 +25,7 @@ resource "aws_iam_role" "ec2-instance" {
     "arn:aws:iam::aws:policy/AmazonSSMDirectoryServiceAccess",
     "arn:aws:iam::aws:policy/AmazonS3FullAccess",
     "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy",
+    "arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess"
   ]
   tags = {
     Name = "rt-ec2-tableau"

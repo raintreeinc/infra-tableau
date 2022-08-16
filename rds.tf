@@ -1,5 +1,16 @@
+resource "aws_db_subnet_group" "this" {
+  count                   = var.enabled ? 1 : 0
+  name                    = "dbsubnet-${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
+  subnet_ids              = data.aws_subnets.data-subnets-private.ids
+  tags = {
+    Name                  = "dbsubnet-${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
+  }
+}
+
+
 resource "aws_rds_cluster" "this" {
   count                   = var.enabled ? 1 : 0
+  db_subnet_group_name    = aws_db_subnet_group.this[count.index].name
   cluster_identifier      = "aurora-${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
   engine                  = "aurora-postgresql"
   engine_version          = "13.7"
