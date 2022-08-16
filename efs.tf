@@ -17,4 +17,5 @@ resource "aws_efs_mount_target" "this" {
   for_each                              = toset(data.aws_subnets.app-subnets-private.ids)
   file_system_id                        = aws_efs_file_system.this[0].id
   subnet_id                             = each.key
+  security_groups                       = [data.aws_security_group.inbound-app-efs.id, data.aws_security_group.outbound-linux-app.id]
 }

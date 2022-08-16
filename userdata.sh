@@ -4,12 +4,19 @@
 sed -i s/^SELINUX=.*$/SELINUX=disabled/ /etc/selinux/config
 
 # Install the AWS CLI and prerequisite packages for later
-dnf install -y unzip sssd realmd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation openldap-clients policycoreutils-python-utils jq git rpm-build make wget
+dnf install -y unzip sssd realmd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation openldap-clients policycoreutils-python-utils jq git rpm-build make wget python3-boto
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
 rm -rf ./awscliv2.zip
 rm -rf ./aws
+
+# Setup python venv
+python3 -m venv ~/venv/ansible
+source ~/venv/ansible/bin/activate
+pip install wheel
+pip install -U pip setuptools
+pip install boto boto3 botocore
 
 # Steup the nvme share to be usable as swap and add it to fstab
 parted /dev/nvme1n1 mklabel gpt
@@ -65,10 +72,6 @@ cd ~/efs-utils
 make rpm
 dnf -y install ~/efs-utils/build/amazon-efs-utils*rpm
 
-# Create data mount directory and mount efs share to it
-mkdir -p /data
-mount -t efs -o tls fs-0e1e94d5d105e5f6d:/ efs
-
 # Run dnf updates
 dnf update -y
 dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
@@ -84,7 +87,7 @@ export AWS_ACCESS_KEY_ID=$objSTSToken | jq -r .AccessKeyId
 export AWS_SECRET_ACCESS_KEY=$objSTSToken | jq -r .SecretAccessKey
 export AWS_DEFAULT_REGION=$region
 export AWS_SESSION_TOKEN=$objSTSToken | jq -r .Token
-objDomainInfo=aws secretsmanager get-secret-value --secret-id "domainjoin"
+objDomainInfo=`aws secretsmanager get-secret-value --secret-id "domainjoin"`
 user=`echo $objDomainInfo | jq -r .SecretString | jq -r .username`
 pass=`echo $objDomainInfo | jq -r .SecretString | jq -r .password`
 domain=`echo $objDomainInfo | jq -r .SecretString | jq -r .domain`
@@ -95,6 +98,21 @@ kuser=`echo $username@$domain_upper`
 echo $pass | kinit $kuser
 echo $pass | realm join $domain_upper -U $kuser --client-software=sssd
 systemctl enable sssd
+
+# Create data mount directory and mount efs share to it
+secret="$prefix-$environment-bi-tableau"
+objTableauInfo=`aws secretsmanager get-secret-value --secret-id "$prefix-$environment-bi-tableau"`
+efs_data=`echo $objTableauInfo | jq -r .SecretString | jq -r .efs_id`
+az=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone`
+az=`echo -n $az | tail -c 1 | tr abc 012`
+mount_data=`aws efs describe-mount-targets --output text --file-system-id $efs_data --query "MountTargets[$az].[MountTargetId]"`
+mount_ip=`aws efs describe-mount-targets --output text --file-system-id $efs_data --query "MountTargets[$az].[IpAddress]"`
+mount_info="$mount_ip\t$efs_data.$region.amazonaws.com"
+echo -e "$mount_info" >> /etc/hosts
+mount_target=`echo $mount_data`
+mkdir -p /data
+efs_fstabinfo="$efs_data:/\t/data\tefs\t_netdev,noresvport,tls,iam\t0\t0"
+echo -e "$efs_fstabinfo" >> /etc/fstab
 
 # Download and install tableau
 mkdir ~/downloads
