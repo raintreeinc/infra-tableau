@@ -11,5 +11,5 @@ resource "aws_secretsmanager_secret" "this" {
 resource "aws_secretsmanager_secret_version" "this" {
   count                   = var.enabled ? 1 : 0
   secret_id               = aws_secretsmanager_secret.this[count.index].id
-  secret_string           = jsonencode(tomap({"Tableau Server administrator username" = var.tableau_username, "Tableau Server administrator password" = var.tableau_password, "Tableau Services Manager (TSM) administrator username" = var.tsm_username, "Tableau Services Manager (TSM) administrator password" = var.tsm_password}))
+  secret_string           = jsonencode(tomap({"server_admin" = var.tableau_username, "server_admin_pw" = var.tableau_password, "tsm_admin" = var.tsm_username, "tsm_admin_password" = var.tsm_password, "efs_id" = aws_efs_file_system.this[count.index].id}))
 }

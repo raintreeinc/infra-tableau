@@ -66,7 +66,8 @@ make rpm
 dnf -y install ~/efs-utils/build/amazon-efs-utils*rpm
 
 # Create data mount directory and mount efs share to it
-
+mkdir -p /data
+mount -t efs -o tls fs-0e1e94d5d105e5f6d:/ efs
 
 # Run dnf updates
 dnf update -y
