@@ -16,7 +16,7 @@ resource "aws_rds_cluster" "this" {
   engine_version          = "13.7"
   storage_encrypted       = true
   kms_key_id              = aws_kms_key.this.arn
-  database_name           = "db-${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
+  database_name           = "db${lower(var.aws_region_code)}${lower(var.tag_env)}${lower(var.aws_team)}tableau"
   master_username         = var.tableau_username
   master_password         = var.tableau_password
   backup_retention_period = 5
