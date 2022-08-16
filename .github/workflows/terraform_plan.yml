@@ -54,7 +54,7 @@ jobs:
       run: |
         json_data=$(cat <<EOF
         {
-          "zip": ${{ secrets.REGZIP }}",
+          "zip": "${{ secrets.REGZIP }}",
           "country": "${{ secrets.REGCOUNTRY }}",
           "city": "${{ secrets.REGCITY }}",
           "last_name": "${{ secrets.REGLASTNAME }}",
@@ -67,7 +67,7 @@ jobs:
           "state": "${{ secrets.REGSTATE }}",
           "opt_in": "false",
           "department": "${{ secrets.REGDEPARTMENT }}",
-          "first_name": ${{ secrets.REGFIRSTNAME }},
+          "first_name": "${{ secrets.REGFIRSTNAME }}",
           "email": "${{ secrets.REGEMAIL }}"
         }
         EOF
