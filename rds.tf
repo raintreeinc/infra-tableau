@@ -4,6 +4,7 @@ resource "aws_rds_cluster" "this" {
   engine                  = "aurora-postgresql"
   engine_version          = "13.7"
   engine_mode             = "serverless"
+  storage_encrypted       = true
   database_name           = "db-${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
   master_username         = var.tableau_username
   master_password         = var.tableau_password

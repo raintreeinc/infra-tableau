@@ -1,6 +1,7 @@
 resource "aws_efs_file_system" "this" {
   count                                 = var.enabled ? 1 : 0
   creation_token                        = "efs-${lower(var.aws_region_code)}-${lower(var.tag_env)}-${lower(var.aws_team)}-tableau"
+  encrypted                             = true
   lifecycle_policy {
     transition_to_ia                    = "AFTER_7_DAYS"
     transition_to_primary_storage_class = "AFTER_1_ACCESS"
