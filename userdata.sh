@@ -4,7 +4,7 @@
 sed -i s/^SELINUX=.*$/SELINUX=disabled/ /etc/selinux/config
 
 # Install the AWS CLI and prerequisite packages for later
-dnf install -y unzip sssd realmd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation openldap-clients policycoreutils-python-utils jq git rpm-build make wget
+dnf install -y unzip sssd realmd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation openldap-clients policycoreutils-python-utils jq git rpm-build make wget nfs-utils
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
