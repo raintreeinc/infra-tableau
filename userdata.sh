@@ -13,11 +13,9 @@ rm -rf ./aws
 
 # Steup the nvme share to be usable as swap and add it to fstab
 parted /dev/nvme1n1 mklabel gpt
-parted -a opt /dev/nvme1n1 mkpart primary linux-swap 0% 100%
-mkswap /dev/nvme1n1p1
-swapon /dev/nvme1n1p1
-swapid=`blkid -s PARTUUID -o value /dev/nvme1n1p1`
-fstabinfo="UUID=$swapid\tswap\tswap\tdefaults\t0\t0"
+parted -a opt /dev/nvme1n1 mkpart primary xfs 0% 100%
+optid=`blkid -s PARTUUID -o value /dev/nvme1n1p1`
+fstabinfo="UUID=$optid\t/opt\txfs\tdefaults\t0\t0"
 echo -e "$fstabinfo" >> /etc/fstab
 
 # Set hostname on system
@@ -56,7 +54,7 @@ instanceid=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/la
 shortid=${instanceid: -4}
 strhostname=$prefix$environment$servertype$shortid
 hostnamectl set-hostname $strhostname.$domain --static
-instanceID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+instanceID=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id`
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=Name,Value=$strhostname
 
 # Build and install the EFS RPM
@@ -119,7 +117,7 @@ echo "@reboot sleep 300 && mkdir -p /data/tableau" >> mycron
 echo "@reboot sleep 330 && tsm topology external-services storage enable --network-share /data/tableau" >> mycron
 crontab mycron
 rm -rf mycron
-tsm register --file ~/downloads/config.json
+#tsm register --file ~/downloads/config.json
 
 # Set ready tag on instance and then reboot
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True
