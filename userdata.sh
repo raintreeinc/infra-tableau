@@ -143,14 +143,14 @@ echo $db_pass | tsm topology external-services repository enable -f ~/dbconfig.j
 tsm pending-changes apply
 tsm initialize --start-server --request-timeout 1800
 echo $tsm_pass | tabcmd initialuser --server http://localhost --username $tsm_admin
-TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
-region=`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone | rev | cut -c2- | rev`
-objSTSToken=`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/rt-ec2-tableau`
-export AWS_ACCESS_KEY_ID\$objSTSToken | jq -r .AccessKeyId
+TOKEN=\`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"\`
+region=\`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone | rev | cut -c2- | rev\`
+objSTSToken=\`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/rt-ec2-tableau\`
+export AWS_ACCESS_KEY_ID=\$objSTSToken | jq -r .AccessKeyId
 export AWS_SECRET_ACCESS_KEY=\$objSTSToken | jq -r .SecretAccessKey
 export AWS_DEFAULT_REGION=\$region
 export AWS_SESSION_TOKEN=\$objSTSToken | jq -r .Token
-instanceID=`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/instance-id`
+instanceID=\`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/instance-id\`
 aws ec2 create-tags --region \$region --resources \$instanceID --tags Key=TableauReady,Value=True
 reboot
 EOT
