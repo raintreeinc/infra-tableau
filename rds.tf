@@ -24,7 +24,7 @@ resource "aws_rds_cluster" "this" {
   vpc_security_group_ids    = [data.aws_security_group.inbound-data-management.id, data.aws_security_group.outbound-data.id, data.aws_security_group.inbound-data-db.id]
   skip_final_snapshot       = true
   serverlessv2_scaling_configuration {
-    max_capacity            = 8.0
+    max_capacity            = 64.0
     min_capacity            = 0.5
   }
 }

@@ -11,13 +11,6 @@ unzip awscliv2.zip
 rm -rf ./awscliv2.zip
 rm -rf ./aws
 
-# Setup python venv
-python3 -m venv ~/venv/ansible
-source ~/venv/ansible/bin/activate
-pip install wheel
-pip install -U pip setuptools
-pip install boto boto3 botocore
-
 # Steup the nvme share to be usable as swap and add it to fstab
 parted /dev/nvme1n1 mklabel gpt
 parted -a opt /dev/nvme1n1 mkpart primary linux-swap 0% 100%
@@ -124,6 +117,8 @@ source /etc/profile.d/tableau_server.sh
 crontab -l > mycron
 echo "@reboot sleep 300 && mkdir -p /data/tableau" >> mycron
 echo "@reboot sleep 330 && tsm topology external-services storage enable --network-share /data/tableau" >> mycron
+crontab mycron
+rm -rf mycron
 tsm register --file ~/downloads/config.json
 
 # Set ready tag on instance and then reboot
