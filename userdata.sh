@@ -17,6 +17,7 @@ parted -a opt /dev/nvme1n1 mkpart primary xfs 0% 100%
 optid=`blkid -s PARTUUID -o value /dev/nvme1n1p1`
 fstabinfo="UUID=$optid\t/opt\txfs\tdefaults\t0\t0"
 echo -e "$fstabinfo" >> /etc/fstab
+mount -a remount
 
 # Set hostname on system
 TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
