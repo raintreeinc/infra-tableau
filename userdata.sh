@@ -100,7 +100,6 @@ echo $pass | realm join $domain_upper -U $kuser --client-software=sssd
 systemctl enable sssd
 
 # Create data mount directory and mount efs share to it
-secret="$prefix-$environment-bi-tableau"
 objTableauInfo=`aws secretsmanager get-secret-value --secret-id "$prefix-$environment-bi-tableau"`
 efs_data=`echo $objTableauInfo | jq -r .SecretString | jq -r .efs_id`
 az=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone`
@@ -111,15 +110,21 @@ mount_info="$mount_ip\t$efs_data.$region.amazonaws.com"
 echo -e "$mount_info" >> /etc/hosts
 mount_target=`echo $mount_data`
 mkdir -p /data
-#efs_fstabinfo="$efs_data:/\t/data\tefs\t_netdev,noresvport,tls,iam\t0\t0"
-#echo -e "$efs_fstabinfo" >> /etc/fstab
+efs_fstabinfo="$efs_data:/\t/data\tefs\tvers=4.1,rw,tls,_netdev,relatime,acl,nofail\t0\t0"
+echo -e "$efs_fstabinfo" >> /etc/fstab
 
 # Download and install tableau
 mkdir ~/downloads
 wget https://downloads.tableau.com/esdalt/2022.1.4/tableau-server-2022-1-4.x86_64.rpm -P ~/downloads/
-dnf -y install ~/downloads/tableau-server-2022-1-4.x86_64.rpm
-mkdir -p /app/tableau_server
-rpm -i --prefix /app/tableau_server ~/downloads/tableau-server-2022-1-4.x86_64.rpm
+dnf install -y ~/downloads/tableau-server-2022-1-4.x86_64.rpm
+aws s3 cp s3://$prefix-$environment-bi-tableau/config.json ~/downloads/config.json
+source /etc/profile.d/tableau_server.sh
+#core_key=`echo $objTableauInfo | jq -r .SecretString | jq -r .core_key`
+#tsm licenses activate -k $core_key
+crontab -l > mycron
+echo "@reboot sleep 300 && mkdir -p /data/tableau" >> mycron
+echo "@reboot sleep 330 && tsm topology external-services storage enable --network-share /data/tableau" >> mycron
+tsm register --file ~/downloads/config.json
 
 # Set ready tag on instance and then reboot
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True

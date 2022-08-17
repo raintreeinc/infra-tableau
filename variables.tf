@@ -77,3 +77,8 @@ variable "tsm_password" {
   type          = string
   description   = "Tableau Services Manager (TSM) administrator password"
 }
+
+variable "tableau_license" {
+  type          = string
+  description   = "Tableau License"
+}
