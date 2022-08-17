@@ -120,26 +120,19 @@ json_data=$(cat <<EOF
 EOF
 )
 echo "$json_data" >> ~/dbconfig.json
-cat <<EOT >> /opt/01tableau.sh
+cat <<EOT >> /opt/tableau.sh
 #!/bin/bash
+systemctl disable firstboot.service
+rm -rf /etc/systemd/system/firstboot.service
+systemctl daemon-reload
 /opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm -d /data/tableau --accepteula
+sleep 180
 source /etc/profile.d/tableau_server.sh
 tsm licenses activate -k $core_key
 tsm register --file /root/downloads/config.json
-tsm topology external-services storage enable --network-share /data/tableau
-EOT
-chmod +x /opt/01tableau.sh
-crontab -l > 01tableau
-echo "@reboot sleep 60;/opt/01tableau.sh" >> 01tableau
-crontab 01tableau
-rm -rf 01tableau
-
-# Create Tableau configuration script
-cat <<EOT >> /opt/02tableau.sh
-#!/bin/bash
-source /etc/profile.d/tableau_server.sh
+sleep 180
 tsm settings import -f /opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/config.json
-echo $db_pass | tsm topology external-services repository enable -f ~/dbconfig.json --no-ssl
+echo $db_pass | tsm topology external-services repository enable -f /root/dbconfig.json --no-ssl
 tsm pending-changes apply
 tsm initialize --start-server --request-timeout 1800
 echo $tsm_pass | tabcmd initialuser --server http://localhost --username $tsm_admin
@@ -154,11 +147,20 @@ instanceID=\`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/
 aws ec2 create-tags --region \$region --resources \$instanceID --tags Key=TableauReady,Value=True
 reboot
 EOT
-chmod +x /opt/02tableau.sh
-crontab -l > 02tableau
-echo "@reboot sleep 180;/opt/02tableau.sh" >> 02tableau
-crontab 02tableau
-rm -rf 02tableau
+chmod +x /opt/tableau.sh
+
+# Create first boot service
+cat <<EOT >> /etc/systemd/system/firstboot.service
+[Unit]
+Description=One time boot script
+[Service]
+Type=simple
+ExecStart=/opt/tableau.sh
+[Install]
+WantedBy=multi-user.target 
+EOT
+systemctl daemon-reload
+systemctl enable firstboot.service
 
 # Set ready tag and then reboot server
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True
