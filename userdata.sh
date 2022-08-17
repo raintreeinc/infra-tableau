@@ -104,7 +104,8 @@ mkdir ~/downloads
 wget https://downloads.tableau.com/esdalt/2022.1.4/tableau-server-2022-1-4.x86_64.rpm -P ~/downloads/
 dnf install -y ~/downloads/tableau-server-2022-1-4.x86_64.rpm
 aws s3 cp s3://$prefix-$environment-bi-tableau/config.json ~/downloads/config.json
-/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula
+/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula -d /data/tableau
+sleep 180
 
 # Create Tableau setup script
 core_key=`echo $objTableauInfo | jq -r .SecretString | jq -r .core_key`
