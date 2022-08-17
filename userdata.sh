@@ -104,7 +104,6 @@ mkdir ~/downloads
 wget https://downloads.tableau.com/esdalt/2022.1.4/tableau-server-2022-1-4.x86_64.rpm -P ~/downloads/
 dnf install -y ~/downloads/tableau-server-2022-1-4.x86_64.rpm
 aws s3 cp s3://$prefix-$environment-bi-tableau/config.json ~/downloads/config.json
-/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula
 
 # Create Tableau setup script
 core_key=`echo $objTableauInfo | jq -r .SecretString | jq -r .core_key`
@@ -123,6 +122,8 @@ EOF
 )
 echo "$json_data" >> ~/dbconfig.json
 cat <<EOT >> /opt/01tableau.sh
+#!/bin/bash
+/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula
 source /etc/profile.d/tableau_server.sh
 tsm licenses activate -k $core_key
 tsm register --file /root/downloads/config.json
@@ -136,12 +137,22 @@ rm -rf 01tableau
 
 # Create Tableau configuration script
 cat <<EOT >> /opt/02tableau.sh
+#!/bin/bash
 source /etc/profile.d/tableau_server.sh
 tsm settings import -f /opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/config.json
 echo $db_pass | tsm topology external-services repository enable -f ~/dbconfig.json --no-ssl
 tsm pending-changes apply
 tsm initialize --start-server --request-timeout 1800
 echo $tsm_pass | tabcmd initialuser --server http://localhost --username $tsm_admin
+TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+region=`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone | rev | cut -c2- | rev`
+objSTSToken=`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/rt-ec2-tableau`
+export AWS_ACCESS_KEY_ID\$objSTSToken | jq -r .AccessKeyId
+export AWS_SECRET_ACCESS_KEY=\$objSTSToken | jq -r .SecretAccessKey
+export AWS_DEFAULT_REGION=\$region
+export AWS_SESSION_TOKEN=\$objSTSToken | jq -r .Token
+instanceID=`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/instance-id`
+aws ec2 create-tags --region \$region --resources \$instanceID --tags Key=TableauReady,Value=True
 EOT
 chmod +x /opt/02tableau.sh
 crontab -l > 02tableau
