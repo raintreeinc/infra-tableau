@@ -91,6 +91,18 @@ data "aws_security_group" "inbound-app-efs" {
   name          = "${lower(var.aws_region_code)}-sg-${lower(var.tag_env)}-efs"
 }
 
+data "aws_security_group" "inbound-data-management" {
+  name          = "${lower(var.aws_region_code)}-sg-${lower(var.tag_env)}-db-management"
+}
+
+data "aws_security_group" "outbound-data" {
+  name          = "${lower(var.aws_region_code)}-sg-${lower(var.tag_env)}-db-outbound"
+}
+
+data "aws_security_group" "inbound-data-db" {
+  name          = "${lower(var.aws_region_code)}-sg-${lower(var.tag_env)}-db"
+}
+
 data "aws_vpc" "this" {
   tags = {
     Purpose     = "Application"
