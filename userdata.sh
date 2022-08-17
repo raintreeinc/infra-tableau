@@ -12,12 +12,13 @@ rm -rf ./awscliv2.zip
 rm -rf ./aws
 
 # Steup the nvme share to be usable as swap and add it to fstab
-# parted /dev/nvme1n1 mklabel gpt
-# parted -a opt /dev/nvme1n1 mkpart primary xfs 0% 100%
-# optid=`blkid -s PARTUUID -o value /dev/nvme1n1p1`
-# fstabinfo="UUID=$optid\t/opt\txfs\tdefaults\t0\t0"
-# echo -e "$fstabinfo" >> /etc/fstab
-# mount -a remount
+parted /dev/nvme1n1 mklabel gpt
+parted -a opt /dev/nvme1n1 mkpart primary xfs 0% 100%
+mkfs.xfs /dev/nvme1n1p1
+optid=`blkid -s UUID -o value /dev/nvme1n1p1`
+fstabinfo="UUID=$optid\t/opt\txfs\tdefaults\t0\t0"
+echo -e "$fstabinfo" >> /etc/fstab
+mount -a remount
 
 # Set hostname on system
 TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
@@ -65,60 +66,78 @@ make rpm
 dnf -y install ~/efs-utils/build/amazon-efs-utils*rpm
 
 # Run dnf updates
-# dnf update -y
-# dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-# dnf -qy module disable postgresql
-# dnf install -y postgresql13-server
-# /usr/pgsql-13/bin/postgresql-13-setup initdb
-# systemctl enable postgresql-13
-# systemctl start postgresql-13
+dnf update -y
+dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+dnf -qy module disable postgresql
+dnf install -y postgresql13
 
 # Join system to the domain
-# objSTSToken=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/rt-ec2-tableau`
-# export AWS_ACCESS_KEY_ID=$objSTSToken | jq -r .AccessKeyId
-# export AWS_SECRET_ACCESS_KEY=$objSTSToken | jq -r .SecretAccessKey
-# export AWS_DEFAULT_REGION=$region
-# export AWS_SESSION_TOKEN=$objSTSToken | jq -r .Token
-# objDomainInfo=`aws secretsmanager get-secret-value --secret-id "domainjoin"`
-# user=`echo $objDomainInfo | jq -r .SecretString | jq -r .username`
-# pass=`echo $objDomainInfo | jq -r .SecretString | jq -r .password`
-# domain=`echo $objDomainInfo | jq -r .SecretString | jq -r .domain`
-# realm discover --server-software=active-directory
-# username=`echo $user | cut -d '@' -f1`
-# domain_upper=`echo $user | cut -d '@' -f2 | tr '[:lower:]' '[:upper:]'`
-# kuser=`echo $username@$domain_upper`
-# echo $pass | kinit $kuser
-# echo $pass | realm join $domain_upper -U $kuser --client-software=sssd
-# systemctl enable sssd
+objSTSToken=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/iam/security-credentials/rt-ec2-tableau`
+export AWS_ACCESS_KEY_ID=$objSTSToken | jq -r .AccessKeyId
+export AWS_SECRET_ACCESS_KEY=$objSTSToken | jq -r .SecretAccessKey
+export AWS_DEFAULT_REGION=$region
+export AWS_SESSION_TOKEN=$objSTSToken | jq -r .Token
+objDomainInfo=`aws secretsmanager get-secret-value --secret-id "domainjoin"`
+user=`echo $objDomainInfo | jq -r .SecretString | jq -r .username`
+pass=`echo $objDomainInfo | jq -r .SecretString | jq -r .password`
+domain=`echo $objDomainInfo | jq -r .SecretString | jq -r .domain`
+realm discover --server-software=active-directory
+username=`echo $user | cut -d '@' -f1`
+domain_upper=`echo $user | cut -d '@' -f2 | tr '[:lower:]' '[:upper:]'`
+kuser=`echo $username@$domain_upper`
+echo $pass | kinit $kuser
+echo $pass | realm join $domain_upper -U $kuser --client-software=sssd
+systemctl enable sssd
 
 # Create data mount directory and mount efs share to it
-# objTableauInfo=`aws secretsmanager get-secret-value --secret-id "$prefix-$environment-bi-tableau"`
-# efs_data=`echo $objTableauInfo | jq -r .SecretString | jq -r .efs_id`
-# az=`curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone`
-# az=`echo -n $az | tail -c 1 | tr abc 012`
-# mount_data=`aws efs describe-mount-targets --output text --file-system-id $efs_data --query "MountTargets[$az].[MountTargetId]"`
-# mount_ip=`aws efs describe-mount-targets --output text --file-system-id $efs_data --query "MountTargets[$az].[IpAddress]"`
-# mount_info="$mount_ip\t$efs_data.$region.amazonaws.com"
-# echo -e "$mount_info" >> /etc/hosts
-# mount_target=`echo $mount_data`
-# mkdir -p /data
-# efs_fstabinfo="$efs_data:/\t/data\tefs\tvers=4.1,rw,tls,_netdev,relatime,acl,nofail\t0\t0"
-# echo -e "$efs_fstabinfo" >> /etc/fstab
+objTableauInfo=`aws secretsmanager get-secret-value --secret-id "$prefix-$environment-bi-tableau"`
+efs_data=`echo $objTableauInfo | jq -r .SecretString | jq -r .efs_id`
+mount_ip=`aws efs describe-mount-targets --output text --file-system-id $efs_data --query "MountTargets[0].[IpAddress]"`
+mkdir -p /data
+efs_fstabinfo="$mount_ip:/\t/data\tnfs4\tnfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport,nofail\t0\t0"
+echo -e "$efs_fstabinfo" >> /etc/fstab
+mount -a remount
+mkdir -p /data/tableau
 
 # Download and install tableau
-# mkdir ~/downloads
-# wget https://downloads.tableau.com/esdalt/2022.1.4/tableau-server-2022-1-4.x86_64.rpm -P ~/downloads/
-# dnf install -y ~/downloads/tableau-server-2022-1-4.x86_64.rpm
-# aws s3 cp s3://$prefix-$environment-bi-tableau/config.json ~/downloads/config.json
-# source /etc/profile.d/tableau_server.sh
-# #core_key=`echo $objTableauInfo | jq -r .SecretString | jq -r .core_key`
-# #tsm licenses activate -k $core_key
-# crontab -l > mycron
-# echo "@reboot sleep 300 && mkdir -p /data/tableau" >> mycron
-# echo "@reboot sleep 330 && tsm topology external-services storage enable --network-share /data/tableau" >> mycron
-# crontab mycron
-# rm -rf mycron
-#tsm register --file ~/downloads/config.json
+mkdir ~/downloads
+wget https://downloads.tableau.com/esdalt/2022.1.4/tableau-server-2022-1-4.x86_64.rpm -P ~/downloads/
+dnf install -y ~/downloads/tableau-server-2022-1-4.x86_64.rpm
+aws s3 cp s3://$prefix-$environment-bi-tableau/config.json ~/downloads/config.json
+/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula
+
+# Create Tableau setup script
+core_key=`echo $objTableauInfo | jq -r .SecretString | jq -r .core_key`
+db_user=`echo $objTableauInfo | jq -r .SecretString | jq -r .server_admin`
+db_pass=`echo $objTableauInfo | jq -r .SecretString | jq -r .server_admin_pw`
+tsm_admin=`echo $objTableauInfo | jq -r .SecretString | jq -r .tsm_admin`
+tsm_pass=`echo $objTableauInfo | jq -r .SecretString | jq -r .tsm_admin_password`
+json_data=$(cat <<EOF
+{
+  "flavor": "generic",
+  "masterUsername: "$db_user",
+  "host": "aurora-use1-dev-bi-tableau.cluster-csp9tzipbcew.us-east-1.rds.amazonaws.com",
+  "port": 5432
+}
+EOF
+)
+echo "$json_data" >> ~/dbconfig.json
+cat <<EOT >> ~/01tableau.sh
+tsm licenses activate -k $core_key
+tsm register --file ~/downloads/config.json
+tsm topology external-services storage enable --network-share /data/tableau
+EOT
+chmod +x ~/01tableau.sh
+
+# Create Tableau configuration script
+cat <<EOT >> ~/02tableau.sh
+tsm settings import -f /opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/config.json
+echo $db_pass | tsm topology external-services repository enable -f ~/dbconfig.json --no-ssl
+tsm pending-changes apply
+tsm initialize --start-server --request-timeout 1800
+echo $tsm_pass | tabcmd initialuser --server http://localhost --username $tsm_admin
+EOT
+chmod +x ~/02tableau.sh
 
 # Set ready tag on instance and then reboot
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True
