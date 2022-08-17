@@ -97,7 +97,6 @@ mkdir -p /data
 efs_fstabinfo="$mount_ip:/\t/data\tnfs4\tnfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport,nofail\t0\t0"
 echo -e "$efs_fstabinfo" >> /etc/fstab
 mount -a remount
-mkdir -p /data/tableau
 
 # Download and install tableau
 mkdir ~/downloads
@@ -123,7 +122,7 @@ EOF
 echo "$json_data" >> ~/dbconfig.json
 cat <<EOT >> /opt/01tableau.sh
 #!/bin/bash
-/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula
+/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm -d /data/tableau --accepteula
 source /etc/profile.d/tableau_server.sh
 tsm licenses activate -k $core_key
 tsm register --file /root/downloads/config.json
@@ -131,7 +130,7 @@ tsm topology external-services storage enable --network-share /data/tableau
 EOT
 chmod +x /opt/01tableau.sh
 crontab -l > 01tableau
-echo "@reboot sleep 60 && /opt/01tableau.sh" >> 01tableau
+echo "@reboot sleep 60;/opt/01tableau.sh" >> 01tableau
 crontab 01tableau
 rm -rf 01tableau
 
@@ -153,10 +152,11 @@ export AWS_DEFAULT_REGION=\$region
 export AWS_SESSION_TOKEN=\$objSTSToken | jq -r .Token
 instanceID=`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/instance-id`
 aws ec2 create-tags --region \$region --resources \$instanceID --tags Key=TableauReady,Value=True
+reboot
 EOT
 chmod +x /opt/02tableau.sh
 crontab -l > 02tableau
-echo "@reboot sleep 180 && /opt/02tableau.sh" >> 02tableau
+echo "@reboot sleep 180;/opt/02tableau.sh" >> 02tableau
 crontab 02tableau
 rm -rf 02tableau
 
