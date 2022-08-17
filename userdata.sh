@@ -104,8 +104,7 @@ mkdir ~/downloads
 wget https://downloads.tableau.com/esdalt/2022.1.4/tableau-server-2022-1-4.x86_64.rpm -P ~/downloads/
 dnf install -y ~/downloads/tableau-server-2022-1-4.x86_64.rpm
 aws s3 cp s3://$prefix-$environment-bi-tableau/config.json ~/downloads/config.json
-/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula -d /data/tableau
-sleep 180
+/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula
 
 # Create Tableau setup script
 core_key=`echo $objTableauInfo | jq -r .SecretString | jq -r .core_key`
@@ -124,22 +123,31 @@ EOF
 )
 echo "$json_data" >> ~/dbconfig.json
 cat <<EOT >> ~/01tableau.sh
+source /etc/profile.d/tableau_server.sh
 tsm licenses activate -k $core_key
 tsm register --file ~/downloads/config.json
 tsm topology external-services storage enable --network-share /data/tableau
 EOT
 chmod +x ~/01tableau.sh
+crontab -l > 01tableau
+echo "@reboot sleep 60 && /root/01tableau.sh" >> 01tableau
+crontab 01tableau
+rm -rf 01tableau
 
 # Create Tableau configuration script
 cat <<EOT >> ~/02tableau.sh
+source /etc/profile.d/tableau_server.sh
 tsm settings import -f /opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/config.json
 echo $db_pass | tsm topology external-services repository enable -f ~/dbconfig.json --no-ssl
 tsm pending-changes apply
 tsm initialize --start-server --request-timeout 1800
 echo $tsm_pass | tabcmd initialuser --server http://localhost --username $tsm_admin
+aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True
 EOT
 chmod +x ~/02tableau.sh
+crontab -l > 02tableau
+echo "@reboot sleep 180 && /root/02tableau.sh" >> 02tableau
+crontab 02tableau
+rm -rf 02tableau
 
-# Set ready tag on instance and then reboot
-aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True
 reboot
