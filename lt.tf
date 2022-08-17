@@ -18,7 +18,7 @@ resource "aws_launch_template" "this" {
   ebs_optimized                         = true
   image_id                              = data.aws_ami.redhat.image_id
   instance_initiated_shutdown_behavior  = "terminate"
-  instance_type                         = "r6id.2xlarge"
+  instance_type                         = "r6id.4xlarge"
   key_name                              = "KP-${upper(var.tag_env)}"
   metadata_options {
     http_endpoint                       = "enabled"
