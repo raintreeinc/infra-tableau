@@ -102,7 +102,7 @@ mount -a remount
 mkdir ~/downloads
 wget https://downloads.tableau.com/esdalt/2022.1.4/tableau-server-2022-1-4.x86_64.rpm -P ~/downloads/
 dnf install -y ~/downloads/tableau-server-2022-1-4.x86_64.rpm
-aws s3 cp s3://$prefix-$environment-bi-tableau/config.json ~/downloads/config.json
+aws s3 cp s3://$prefix-$environment-bi-tableau/config.json /opt/tableau/config.json
 
 # Create Tableau setup script
 core_key=`echo $objTableauInfo | jq -r .SecretString | jq -r .core_key`
@@ -119,17 +119,21 @@ json_data=$(cat <<EOF
 }
 EOF
 )
-echo "$json_data" >> ~/dbconfig.json
-cat <<EOT >> /opt/tableau.sh
+echo "$json_data" >> /opt/tableau/dbconfig.json
+cat <<EOT >> /opt/tableau/tableau.sh
 #!/bin/bash
 /opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula
 sleep 180
 source /etc/profile.d/tableau_server.sh
 tsm licenses activate -k $core_key
-tsm register --file /root/downloads/config.json
+tsm register --file /opt/tableau/config.json
 sleep 180
 tsm settings import -f /opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/config.json
-echo $db_pass | tsm topology external-services repository enable -f /root/dbconfig.json --no-ssl
+echo $db_pass | tsm topology external-services repository enable -f /opt/tableau/dbconfig.json --no-ssl
+tsm configuration set -k gateway.trusted -v "3.219.54.181 44.195.175.101 184.72.160.208 54.156.128.95 3.221.148.57 54.156.110.250"
+tsm configuration set -k gateway.public.host -v "tableau.dev.raintreeinc.com"
+tsm configuration set -k gateway.trusted_hosts -v "tableau.dev.raintreeinc.com"
+tsm configuration set -k gateway.public.port -v "443"
 tsm pending-changes apply
 tsm initialize --start-server --request-timeout 1800
 echo $tsm_pass | tabcmd initialuser --server http://localhost --username $tsm_admin
@@ -142,7 +146,6 @@ export AWS_DEFAULT_REGION=\$region
 export AWS_SESSION_TOKEN=\$objSTSToken | jq -r .Token
 instanceID=\`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/instance-id\`
 aws ec2 create-tags --region \$region --resources \$instanceID --tags Key=TableauReady,Value=True
-reboot
 EOT
 chmod +x /opt/tableau.sh
 
