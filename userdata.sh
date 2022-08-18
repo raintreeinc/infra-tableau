@@ -90,13 +90,13 @@ echo $pass | realm join $domain_upper -U $kuser --client-software=sssd
 systemctl enable sssd
 
 # Create data mount directory and mount efs share to it
-objTableauInfo=`aws secretsmanager get-secret-value --secret-id "$prefix-$environment-bi-tableau"`
-efs_data=`echo $objTableauInfo | jq -r .SecretString | jq -r .efs_id`
-mount_ip=`aws efs describe-mount-targets --output text --file-system-id $efs_data --query "MountTargets[0].[IpAddress]"`
-mkdir -p /data
-efs_fstabinfo="$mount_ip:/\t/data\tnfs4\tnfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport,nofail\t0\t0"
-echo -e "$efs_fstabinfo" >> /etc/fstab
-mount -a remount
+# objTableauInfo=`aws secretsmanager get-secret-value --secret-id "$prefix-$environment-bi-tableau"`
+# efs_data=`echo $objTableauInfo | jq -r .SecretString | jq -r .efs_id`
+# mount_ip=`aws efs describe-mount-targets --output text --file-system-id $efs_data --query "MountTargets[0].[IpAddress]"`
+# mkdir -p /data
+# efs_fstabinfo="$mount_ip:/\t/data\tnfs4\tnfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport,nofail\t0\t0"
+# echo -e "$efs_fstabinfo" >> /etc/fstab
+# mount -a remount
 
 # Download and install tableau
 mkdir ~/downloads
@@ -147,8 +147,11 @@ export AWS_SESSION_TOKEN=\$objSTSToken | jq -r .Token
 instanceID=\`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/instance-id\`
 aws ec2 create-tags --region \$region --resources \$instanceID --tags Key=TableauReady,Value=True
 EOT
-chmod +x /opt/tableau.sh
+chmod +x /opt/tableau/tableau.sh
 
 # Set ready tag and then reboot server
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True
 reboot
+
+tabcmd initialuser --server http://localhost --username svctableau
+mkiK8XieN78g05RxFGOU9UOSGsmY
