@@ -19,7 +19,7 @@ resource "aws_lb" "tsm" {
   subnets                     = data.aws_subnets.app-subnets-public.ids
   enable_deletion_protection  = false
   drop_invalid_header_fields  = true
-  security_groups             = [data.aws_security_group.inbound-linux-devops.id, data.aws_security_group.inbound-linux-app-management.id, data.aws_security_group.inbound-web-public.id, data.aws_security_group.outbound-linux-app.id]
+  security_groups             = [data.aws_security_group.inbound-linux-devops.id, data.aws_security_group.inbound-linux-app-management.id, data.aws_security_group.inbound-web-public.id, data.aws_security_group.outbound-linux-app.id, data.aws_security_group.inbound-app-tableau.id]
 }
 
 resource "aws_lb_listener" "tableau-http" {
