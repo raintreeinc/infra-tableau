@@ -125,7 +125,7 @@ cat <<EOT >> /opt/tableau.sh
 systemctl disable firstboot.service
 rm -rf /etc/systemd/system/firstboot.service
 systemctl daemon-reload
-/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm
+/opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula
 sleep 180
 source /etc/profile.d/tableau_server.sh
 tsm licenses activate -k $core_key
