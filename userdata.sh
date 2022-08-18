@@ -113,7 +113,7 @@ tsm_pass=`echo $objTableauInfo | jq -r .SecretString | jq -r .tsm_admin_password
 json_data=$(cat <<EOF
 {
   "flavor": "generic",
-  "masterUsername: "$db_user",
+  "masterUsername": "$db_user",
   "host": "aurora-use1-dev-bi-tableau.cluster-csp9tzipbcew.us-east-1.rds.amazonaws.com",
   "port": 5432
 }
@@ -122,9 +122,6 @@ EOF
 echo "$json_data" >> ~/dbconfig.json
 cat <<EOT >> /opt/tableau.sh
 #!/bin/bash
-systemctl disable firstboot.service
-rm -rf /etc/systemd/system/firstboot.service
-systemctl daemon-reload
 /opt/tableau/tableau_server/packages/scripts.20221.22.0712.0324/initialize-tsm --accepteula
 sleep 180
 source /etc/profile.d/tableau_server.sh
@@ -148,19 +145,6 @@ aws ec2 create-tags --region \$region --resources \$instanceID --tags Key=Tablea
 reboot
 EOT
 chmod +x /opt/tableau.sh
-
-# Create first boot service
-cat <<EOT >> /etc/systemd/system/firstboot.service
-[Unit]
-Description=One time boot script
-[Service]
-Type=simple
-ExecStart=/opt/tableau.sh
-[Install]
-WantedBy=multi-user.target 
-EOT
-systemctl daemon-reload
-systemctl enable firstboot.service
 
 # Set ready tag and then reboot server
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True
