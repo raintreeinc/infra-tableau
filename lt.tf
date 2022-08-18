@@ -34,7 +34,7 @@ resource "aws_launch_template" "this" {
   }
   network_interfaces {
     delete_on_termination               = true
-    security_groups                     = [ data.aws_security_group.inbound-linux-devops.id, data.aws_security_group.inbound-linux-app-management.id, data.aws_security_group.inbound-web-public.id, data.aws_security_group.outbound-linux-app.id ]
+    security_groups                     = [ data.aws_security_group.inbound-linux-devops.id, data.aws_security_group.inbound-linux-app-management.id, data.aws_security_group.inbound-web-public.id, data.aws_security_group.outbound-linux-app.id, data.aws_security_group.inbound-app-tableau.id ]
     associate_public_ip_address         = true
   }
   tag_specifications {
