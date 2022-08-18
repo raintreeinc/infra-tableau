@@ -103,6 +103,10 @@ data "aws_security_group" "inbound-data-db" {
   name          = "${lower(var.aws_region_code)}-sg-${lower(var.tag_env)}-db"
 }
 
+data "aws_security_group" "inbound-app-tableau" {
+  name          = "${lower(var.aws_region_code)}-sg-${lower(var.tag_env)}-tableau"
+}
+
 data "aws_vpc" "this" {
   tags = {
     Purpose     = "Application"
