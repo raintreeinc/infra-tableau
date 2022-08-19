@@ -145,6 +145,8 @@ export AWS_SECRET_ACCESS_KEY=\$objSTSToken | jq -r .SecretAccessKey
 export AWS_DEFAULT_REGION=\$region
 export AWS_SESSION_TOKEN=\$objSTSToken | jq -r .Token
 instanceID=\`curl -H "X-aws-ec2-metadata-token: \$TOKEN" http://169.254.169.254/latest/meta-data/instance-id\`
+wget https://s3.amazonaws.com/redshift-downloads/drivers/odbc/1.4.56.1000/AmazonRedshiftODBC-64-bit-1.4.56.1000-1.x86_64.rpm -P ~/downloads/
+dnf -i ~/downloads/AmazonRedshiftODBC-64-bit-1.4.56.1000-1.x86_64.rpm
 aws ec2 create-tags --region \$region --resources \$instanceID --tags Key=TableauReady,Value=True
 EOT
 chmod +x /opt/tableau/tableau.sh
