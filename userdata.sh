@@ -152,6 +152,3 @@ chmod +x /opt/tableau/tableau.sh
 # Set ready tag and then reboot server
 aws ec2 create-tags --region $region --resources $instanceID --tags Key=ReadyForUse,Value=True
 reboot
-
-tabcmd initialuser --server http://localhost --username svctableau
-mkiK8XieN78g05RxFGOU9UOSGsmY
